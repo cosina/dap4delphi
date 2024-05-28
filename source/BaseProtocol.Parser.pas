@@ -1,3 +1,5 @@
+{$I definition.inc}
+
 unit BaseProtocol.Parser;
 
 interface
@@ -82,8 +84,10 @@ end;
 
 class function TBaseProtocolParser.DecodeMessage(
   const AProtocolMessage: string): TProtocolMessage;
+{$IFNDEF DELPHI12_OR_HIGHER}
 var
   LRttiCtx: TRttiContext;
+{$ENDIF}
 begin
   var LJSON := TJSONValue.ParseJSONValue(AProtocolMessage);
   try
@@ -93,7 +97,11 @@ begin
     var LUnMarshaler := TJSONConverters.GetJSONUnMarshaler;
     try
       var LClass := GetProtocolMessageType(LJSON as TJSONObject);
+      {$IFDEF DELPHI12_OR_HIGHER}
+      var LInstance := LUnMarshaler.ObjectInstance(LClass.QualifiedClassName);
+      {$ELSE}
       var LInstance := TJSONUnMarshal.ObjectInstance(LRttiCtx, LClass.QualifiedClassName);
+      {$ENDIF}
       try
         if not Assigned(LInstance) then
           raise Exception.Create('Cannot parse JSON.');
