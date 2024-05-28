@@ -109,12 +109,16 @@ end;
 
 class function TGenericHelper.FreeGenericIfInstance<T>(var AValue: T): boolean;
 begin
-  if (PTypeInfo(TypeInfo(T))^.Kind = tkClass) then
-    FreeIfClass(TypeInfo(T), AValue)
-  else if (TypeInfo(T) = TypeInfo(TValue)) then begin
+  Result := false;
+  if (PTypeInfo(TypeInfo(T))^.Kind = tkClass) then begin
+    FreeIfClass(TypeInfo(T), AValue);
+    Result := true
+  end else if (TypeInfo(T) = TypeInfo(TValue)) then begin
     var LValue := TValue.From<T>(AValue);
-    if LValue.IsObject() then
+    if LValue.IsObject() then begin
       LValue.AsObject.Free();
+      Result := true
+    end;
   end;
 end;
 
