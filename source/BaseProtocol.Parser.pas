@@ -54,11 +54,15 @@ class function TBaseProtocolParser.GetProtocolMessageType(
   const AJSONObject: TJSONObject): TClass;
 begin
   case JsonToMessageType(AJSONObject) of
-    TMessageType.Request : Exit(TProtocolMessage.Requests[JsonToRequestType(AJSONObject)]);
-    TMessageType.Response: Exit(TProtocolMessage.Responses[JsonToRequestType(AJSONObject)]);
-    TMessageType.Event   : Exit(TProtocolMessage.Events[JsonToEventType(AJSONObject)]);
+    TMessageType.Request:
+      Result := TProtocolMessage.Requests[JsonToRequestType(AJSONObject)];
+    TMessageType.Response:
+      Result := TProtocolMessage.Responses[JsonToRequestType(AJSONObject)];
+    TMessageType.Event:
+      Result := TProtocolMessage.Events[JsonToEventType(AJSONObject)];
+    else
+      Result := nil;
   end;
-  Result := nil;
 end;
 
 class function TBaseProtocolParser.JsonToMessageType(

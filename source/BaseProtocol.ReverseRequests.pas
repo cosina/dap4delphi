@@ -25,12 +25,15 @@ type
     FArgs: TArray<string>;
     [JSONName('env'), Managed()]
     FEnv: TEnvs;
+    [JSONName('argsCanBeInterpretedByShell')]
+    FArgsCanBeInterpretedByShell: boolean;
   public
     property Kind: TRunInTerminalRequestArgumentsKind read FKind write FKind;
     property Title: string read FTitle write FTitle;
     property Cwd: string read FCwd write FCwd;
     property Args: TArray<string> read FArgs write FArgs;
     property Env: TEnvs read FEnv write FEnv;
+    property ArgsCanBeInterpretedByShell: boolean read FArgsCanBeInterpretedByShell write FArgsCanBeInterpretedByShell;
   end;
 
   [RequestCommand(TRequestCommand.RunInTerminal)]

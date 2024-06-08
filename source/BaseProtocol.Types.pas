@@ -61,6 +61,11 @@ type
     Variables,
     WriteMemory);
 
+  TResponseMessage = (
+    Cancelled,
+    NotStopped
+  );
+
   TEventType = (
     Unknown,
     Breakpoint,
@@ -225,7 +230,7 @@ type
     Line,
     Instruction);
 
-  TCompletitionItemType = (
+  TCompletionItemType = (
     None,
     Method,
     &Function,
@@ -266,6 +271,25 @@ type
     Threads,
     Variables);
   TInvalidatedAreas = set of TInvalidatedArea;
+
+  TBreakpointModeApplicability = (
+    Source,
+    Exception,
+    Data,
+    Instruction
+  );
+  TBreakpointModeApplicabilities = set of TBreakpointModeApplicability;
+
+  TBreakpointMode_ = (
+    Hardware,
+    Software
+  );
+  TBreakpointModes_ = set of TBreakpointMode_;
+
+  TBreakpointReason = (
+    Pending,
+    Failed
+  );
   {$SCOPEDENUMS OFF}
   {$ENDREGION 'ENUNS'}
 
@@ -430,16 +454,19 @@ type
     FInstructionReference: string;
     [JSONName('offset')]
     FOffset: integer;
+    [JSONName('reason'), JSONReflect(ctStrings, rtStrings, TEnumInterceptor)]
+    FReason: TBreakpointReason;
   public
     property Id: integer read FId write FId;
     property Verified: boolean read FVerified write FVerified;
-    property Message: string read FMessage write FMessage;
+    property &Message: string read FMessage write FMessage;
     property Line: integer read FLine write FLine;
     property Column: integer read FColumn write FColumn;
     property EndLine: integer read FEndLine write FEndLine;
     property EndColumn: integer read FEndColumn write FEndColumn;
     property InstructionReference: string read FInstructionReference write FInstructionReference;
     property Offset: integer read FOffset write FOffset;
+    property Reason: TBreakpointReason read FReason write FReason;
   end;
 
   TBreakpoint<TAdapterData> = class(TBreakpoint)
@@ -454,6 +481,24 @@ type
 
   TBreakpoints = TObjectList<TBreakpoint>;
   TDynamicBreakpoints = TObjectList<TDynamicBreakpoint>;
+
+  TBreakpointMode = class(TBaseType)
+  private
+    [JSONName('mode'), JSONReflect(ctStrings, rtStrings, TEnumInterceptor)]
+    FMode: TBreakpointMode_;
+    [JSONName('label')]
+    FLabel: string;
+    [JSONName('description')]
+    FDescription: string;
+    [JSONName('appliesTo'), JSONReflect(ctString, rtString, TSetInterceptor)]
+    FAppliesTo: TBreakpointModeApplicabilities;
+  public
+    property Mode: TBreakpointMode_ read FMode write FMode;
+    property &Label: string read FLabel write FLabel;
+    property Description: string read FDescription write FDescription;
+    property AppliesTo: TBreakpointModeApplicabilities read FAppliesTo write FAppliesTo;
+  end;
+  TBreakpointModes = TObjectList<TBreakpointMode>;
 
   TModule = class(TBaseType)
   private
@@ -546,6 +591,8 @@ type
     FSupportsFunctionBreakpoints: boolean;
     [JSONName('supportsConditionalBreakpoints')]
     FSupportsConditionalBreakpoints: boolean;
+    [JSONName('supportsHitConditionalBreakpoints')]
+    FSupportsHitConditionalBreakpoints: boolean;
     [JSONName('supportsEvaluateForHovers')]
     FSupportsEvaluateForHovers: boolean;
     [JSONName('exceptionBreakpointFilters'), Managed()]
@@ -558,11 +605,11 @@ type
     FSupportsRestartFrame: boolean;
     [JSONName('supportsGotoTargetsRequest')]
     FSupportsGotoTargetsRequest: boolean;
-    [JSONName('supportsCompletitionsRequest')]
-    FSupportsCompletitionsRequest: boolean;
-    [JSONName('completitionTriggerCharacters')]
-    FCompletitionTriggerCharacters: TArray<string>;
-    [JSONName('supportsModuleRequests')]
+    [JSONName('supportsCompletionsRequest')]
+    FSupportsCompletionsRequest: boolean;
+    [JSONName('completionTriggerCharacters')]
+    FCompletionTriggerCharacters: TArray<string>;
+    [JSONName('supportsModulesRequest')]
     FSupportsModuleRequests: boolean;
     [JSONName('additionalModuleColumns')]
     FAdditionalModuleColumns: TColumnDescriptors;
@@ -602,8 +649,8 @@ type
     FSupportsDisassembleRequest: boolean;
     [JSONName('supportsCancelRequest')]
     FSupportsCancelRequest: boolean;
-    [JSONName('supportsBreakpointLocationRequest')]
-    FSupportsBreakpointLocationRequest: boolean;
+    [JSONName('supportsBreakpointLocationsRequest')]
+    FSupportsBreakpointLocationsRequest: boolean;
     [JSONName('supportsClipboardContext')]
     FSupportsClipboardContext: boolean;
     [JSONName('supportsSteppingGranularity')]
@@ -614,18 +661,21 @@ type
     FSupportsExceptionFilterOptions: boolean;
     [JSONName('supportsSingleThreadExecutionRequests')]
     FSupportsSingleThreadExecutionRequests: boolean;
+    [JSONName('breakpointModes'), JSONReflect(ctStrings, rtStrings, TSetInterceptor)]
+    FBreakpointModes: TBreakpointModes_;
   public
     property SupportsConfigurationDoneRequest: boolean read FSupportsConfigurationDoneRequest write FSupportsConfigurationDoneRequest;
     property SupportsFunctionBreakpoints: boolean read FSupportsFunctionBreakpoints write FSupportsFunctionBreakpoints;
     property SupportsConditionalBreakpoints: boolean read FSupportsConditionalBreakpoints write FSupportsConditionalBreakpoints;
+    property SupportsHitConditionalBreakpoints: boolean read FSupportsHitConditionalBreakpoints write FSupportsHitConditionalBreakpoints;
     property SupportsEvaluateForHovers: boolean read FSupportsEvaluateForHovers write FSupportsEvaluateForHovers;
     property ExceptionBreakpointFilters: TExceptionBreakpointsFilters read FExceptionBreakpointFilters write FExceptionBreakpointFilters;
     property SupportsStepBack: boolean read FSupportsStepBack write FSupportsStepBack;
     property SupportsSetVariable: boolean read FSupportsSetVariable write FSupportsSetVariable;
     property SupportsRestartFrame: boolean read FSupportsRestartFrame write FSupportsRestartFrame;
     property SupportsGotoTargetsRequest: boolean read FSupportsGotoTargetsRequest write FSupportsGotoTargetsRequest;
-    property SupportsCompletitionsRequest: boolean read FSupportsCompletitionsRequest write FSupportsCompletitionsRequest;
-    property CompletitionTriggerCharacters: TArray<string> read FCompletitionTriggerCharacters write FCompletitionTriggerCharacters;
+    property SupportsCompletionsRequest: boolean read FSupportsCompletionsRequest write FSupportsCompletionsRequest;
+    property CompletionTriggerCharacters: TArray<string> read FCompletionTriggerCharacters write FCompletionTriggerCharacters;
     property SupportsModuleRequests: boolean read FSupportsModuleRequests write FSupportsModuleRequests;
     property AdditionalModuleColumns: TColumnDescriptors read FAdditionalModuleColumns write FAdditionalModuleColumns;
     property SupportedChecksumAlgorithms: TChecksumAlgorithms read FSupportedChecksumAlgorithms write FSupportedChecksumAlgorithms;
@@ -646,12 +696,13 @@ type
     property SupportsWriteMemoryRequest: boolean read FSupportsWriteMemoryRequest write FSupportsWriteMemoryRequest;
     property SupportsDisassembleRequest: boolean read FSupportsDisassembleRequest write FSupportsDisassembleRequest;
     property SupportsCancelRequest: boolean read FSupportsCancelRequest write FSupportsCancelRequest;
-    property SupportsBreakpointLocationRequest: boolean read FSupportsBreakpointLocationRequest write FSupportsBreakpointLocationRequest;
+    property SupportsBreakpointLocationsRequest: boolean read FSupportsBreakpointLocationsRequest write FSupportsBreakpointLocationsRequest;
     property SupportsClipboardContext: boolean read FSupportsClipboardContext write FSupportsClipboardContext;
     property SupportsSteppingGranularity: boolean read FSupportsSteppingGranularity write FSupportsSteppingGranularity;
     property SupportsInstructionBreakpoints: boolean read FSupportsInstructionBreakpoints write FSupportsInstructionBreakpoints;
     property SupportsExceptionFilterOptions: boolean read FSupportsExceptionFilterOptions write FSupportsExceptionFilterOptions;
     property SupportsSingleThreadExecutionRequests: boolean read FSupportsSingleThreadExecutionRequests write FSupportsSingleThreadExecutionRequests;
+    property BreakpointModes: TBreakpointModes_ read FBreakpointModes write FBreakpointModes;
   end;
 
   TBreakpointLocation = class(TBaseType)
@@ -685,12 +736,15 @@ type
     FHitCondition: string;
     [JSONName('logMessage')]
     FLogMessage: string;
+    [JSONName('mode'), JSONReflect(ctStrings, rtStrings, TEnumInterceptor)]
+    FMode: TBreakpointMode_;
   public
     property Line: integer read FLine write FLine;
     property Column: integer read FColumn write FColumn;
     property Condition: string read FCondition write FCondition;
     property HitCondition: string read FHitCondition write FHitCondition;
     property LogMessage: string read FLogMessage write FLogMessage;
+    property Mode: TBreakpointMode_ read FMode write FMode;
   end;
 
   TSourceBreakpoints = TObjectList<TSourceBreakpoint>;
@@ -711,18 +765,21 @@ type
 
   TFunctionBreakpoints = TObjectList<TFunctionBreakpoint>;
 
-  TExceptionFilterOption = class(TBaseType)
+  TExceptionFilterOptions = class(TBaseType)
   private
     [JSONName('filterId')]
     FFilterId: string;
     [JSONName('condition')]
     FCondition: string;
+    [JSONName('mode'), JSONReflect(ctStrings, rtStrings, TEnumInterceptor)]
+    FMode: TBreakpointMode_;
   public
     property FilterId: string read FFilterId write FFilterId;
     property Condition: string read FCondition write FCondition;
+    property Mode: TBreakpointMode_ read FMode write FMode;
   end;
 
-  TExceptionFilterOptions = TObjectList<TExceptionFilterOption>;
+  TExceptionFilterOptionsList = TObjectList<TExceptionFilterOptions>;
 
   TExceptionPathSegment = class(TBaseType)
   private
@@ -735,7 +792,7 @@ type
     property Names: TArray<string> read FNames write FNames;
   end;
 
-  TExceptionOption = class(TBaseType)
+  TExceptionOptions = class(TBaseType)
   private
     [JSONName('path'), Managed()]
     FPath: TExceptionPathSegment;
@@ -746,7 +803,7 @@ type
     property BreakMode: TExceptionBreakMode read FBreakMode write FBreakMode;
   end;
 
-  TExceptionOptions = TObjectList<TExceptionOption>;
+  TExceptionOptionsList = TObjectList<TExceptionOptions>;
 
   TDataBreakpoint = class(TBaseType)
   private
@@ -777,11 +834,14 @@ type
     FCondition: string;
     [JSONName('hitCondition')]
     FHitCondition: string;
+    [JSONName('mode'), JSONReflect(ctStrings, rtStrings, TEnumInterceptor)]
+    FMode: TBreakpointMode_;
   public
     property InstructionReference: string read FInstructionReference write FInstructionReference;
     property Offset: string read FOffset write FOffset;
     property Condition: string read FCondition write FCondition;
     property HitCondition: string read FHitCondition write FHitCondition;
+    property Mode: TBreakpointMode_ read FMode write FMode;
   end;
 
   TInstructionBreakpoints = TObjectList<TInstructionBreakpoint>;
@@ -1042,7 +1102,7 @@ type
 
   TTargets = TObjectList<TTarget>;
 
-  TCompletitionItem = class(TBaseType)
+  TCompletionItem = class(TBaseType)
   private
     [JSONName('label')]
     FLabel: string;
@@ -1055,7 +1115,7 @@ type
     [JSONName('start')]
     FStart: integer;
     [JSONName('type'), JSONReflect(ctString, rtString, TEnumInterceptor)]
-    FType: TCompletitionItemType;
+    FType: TCompletionItemType;
     [JSONName('length')]
     FLength: integer;
     [JSONName('selectionStart')]
@@ -1067,18 +1127,19 @@ type
     property Text: string read FText write FText;
     property SortText: string read FSortText write FSortText;
     property Detail: string read FDetail write FDetail;
-    property &Type: TCompletitionItemType read FType write FType;
+    property &Type: TCompletionItemType read FType write FType;
     property Start: integer read FStart write FStart;
     property Length: integer read FLength write FLength;
     property SelectionStart: integer read FSelectionStart write FSelectionStart;
     property SelectionLength: integer read FSelectionLength write FSelectionLength;
   end;
 
-  TCompletitionItems = TObjectList<TCompletitionItem>;
+  TCompletionItems = TObjectList<TCompletionItem>;
 
-  TExceptionDetail = class;
-  TExceptionDetails = TObjectList<TExceptionDetail>;
-  TExceptionDetail = class(TBaseType)
+  TExceptionDetails = class;
+  TExceptionDetailsList = TObjectList<TExceptionDetails>;
+
+  TExceptionDetails = class(TBaseType)
   private
     [JSONName('message')]
     FMessage: string;
@@ -1091,17 +1152,17 @@ type
     [JSONName('stackTrace')]
     FStackTrace: string;
     [JSONName('innerException'), Managed()]
-    FInnerException: TExceptionDetails;
+    FInnerException: TExceptionDetailsList;
   public
     property Message: string read FMessage write FMessage;
     property TypeName: string read FTypeName write FTypeName;
     property FullTypeName: string read FFullTypeName write FFullTypeName;
     property EvaluteName: string read FEvaluteName write FEvaluteName;
     property StackTrace: string read FStackTrace write FStackTrace;
-    property InnerException: TExceptionDetails read FInnerException write FInnerException;
+    property InnerException: TExceptionDetailsList read FInnerException write FInnerException;
   end;
 
-  TDisassembleInstruction = class(TBaseType)
+  TDisassembledInstruction = class(TBaseType)
   private
     [JSONName('address')]
     FAddress: string;
@@ -1130,7 +1191,7 @@ type
     property EndColumn: integer read FEndColumn write FEndColumn;
   end;
 
-  TDisassembleInstruction<TAdapterData> = class(TDisassembleInstruction)
+  TDisassembledInstruction<TAdapterData> = class(TDisassembledInstruction)
   private
     [JSONName('location'), Managed()]
     FLocation: TSource<TAdapterData>;
@@ -1138,11 +1199,11 @@ type
     property Location: TSource<TAdapterData> read FLocation write FLocation;
   end;
 
-  TDynamicDisassembleInstruction = TDisassembleInstruction<TDynamicData>;
+  TDynamicDisassembledInstruction = TDisassembledInstruction<TDynamicData>;
 
-  TDisassembleInstructions = TObjectList<TDisassembleInstruction>;
+  TDisassembledInstructions = TObjectList<TDisassembledInstruction>;
 
-  TDynamicDisassembleInstructions = TObjectList<TDynamicDisassembleInstruction>;
+  TDynamicDisassembledInstructions = TObjectList<TDynamicDisassembledInstruction>;
 
 const
   TWO_CRLF = sLineBreak + sLineBreak;
@@ -1230,6 +1291,7 @@ var
 begin
   inherited;
   { TODO : Fix here when we get the AdapterData type possibilities }
+  LNewItem := nil;
   for var LItem in Self.Sources do begin
     //Creates an identical instance type
     LNewItem := LItem.ClassType.InitInstance(LNewItem) as TPersistent;

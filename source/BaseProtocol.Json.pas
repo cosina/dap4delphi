@@ -96,8 +96,8 @@ begin
   DoRegisterObjectListConverter<TBreakpointLocation>(AMarshal);
   DoRegisterObjectListConverter<TSourceBreakpoint>(AMarshal);
   DoRegisterObjectListConverter<TFunctionBreakpoint>(AMarshal);
-  DoRegisterObjectListConverter<TExceptionFilterOption>(AMarshal);
-  DoRegisterObjectListConverter<TExceptionOption>(AMarshal);
+  DoRegisterObjectListConverter<TExceptionFilterOptions>(AMarshal);
+  DoRegisterObjectListConverter<TExceptionOptions>(AMarshal);
   DoRegisterObjectListConverter<TDataBreakpoint>(AMarshal);
   DoRegisterObjectListConverter<TInstructionBreakpoint>(AMarshal);
   DoRegisterObjectListConverter<TStackFrame>(AMarshal);
@@ -107,9 +107,9 @@ begin
   DoRegisterObjectListConverter<TThread>(AMarshal);
   DoRegisterObjectListConverter<TStepInTarget>(AMarshal);
   DoRegisterObjectListConverter<TTarget>(AMarshal);
-  DoRegisterObjectListConverter<TCompletitionItem>(AMarshal);
-  DoRegisterObjectListConverter<TExceptionDetail>(AMarshal);
-  DoRegisterObjectListConverter<TDisassembleInstruction>(AMarshal);
+  DoRegisterObjectListConverter<TCompletionItem>(AMarshal);
+  DoRegisterObjectListConverter<TExceptionDetails>(AMarshal);
+  DoRegisterObjectListConverter<TDisassembledInstruction>(AMarshal);
   DoRegisterObjectListConverter<TExceptionBreakpointsFilter>(AMarshal);
   DoRegisterObjectListConverter<TDynamicScope>(AMarshal);
   DoRegisterObjectListConverter<TChecksum>(AMarshal);
@@ -163,8 +163,8 @@ begin
   DoRegisterObjectListReverter<TBreakpointLocation>(AUnmarshal);
   DoRegisterObjectListReverter<TSourceBreakpoint>(AUnmarshal);
   DoRegisterObjectListReverter<TFunctionBreakpoint>(AUnmarshal);
-  DoRegisterObjectListReverter<TExceptionFilterOption>(AUnmarshal);
-  DoRegisterObjectListReverter<TExceptionOption>(AUnmarshal);
+  DoRegisterObjectListReverter<TExceptionFilterOptions>(AUnmarshal);
+  DoRegisterObjectListReverter<TExceptionOptions>(AUnmarshal);
   DoRegisterObjectListReverter<TDataBreakpoint>(AUnmarshal);
   DoRegisterObjectListReverter<TInstructionBreakpoint>(AUnmarshal);
   DoRegisterObjectListReverter<TStackFrame>(AUnmarshal);
@@ -174,9 +174,9 @@ begin
   DoRegisterObjectListReverter<TThread>(AUnmarshal);
   DoRegisterObjectListReverter<TStepInTarget>(AUnmarshal);
   DoRegisterObjectListReverter<TTarget>(AUnmarshal);
-  DoRegisterObjectListReverter<TCompletitionItem>(AUnmarshal);
-  DoRegisterObjectListReverter<TExceptionDetail>(AUnmarshal);
-  DoRegisterObjectListReverter<TDisassembleInstruction>(AUnmarshal);
+  DoRegisterObjectListReverter<TCompletionItem>(AUnmarshal);
+  DoRegisterObjectListReverter<TExceptionDetails>(AUnmarshal);
+  DoRegisterObjectListReverter<TDisassembledInstruction>(AUnmarshal);
   DoRegisterObjectListReverter<TExceptionBreakpointsFilter>(AUnmarshal);
   DoRegisterObjectListReverter<TDynamicScope>(AUnmarshal);
   DoRegisterObjectListReverter<TChecksum>(AUnmarshal);

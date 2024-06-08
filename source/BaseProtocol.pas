@@ -103,7 +103,6 @@ type
   end;
 
   //Response classes
-  TResponseMessage = string;
   [MessageType(TMessageType.Response)]
   TResponse = class(TProtocolMessage)
   private
@@ -113,7 +112,7 @@ type
     FSuccess: boolean;
     [JSONName('command'), JSONReflect(ctString, rtString, TEnumInterceptor)]
     FCommand: TRequestCommand;
-    [JSONName('message')]
+    [JSONName('message'), JSONReflect(ctString, rtString, TEnumInterceptor)]
     FMessage: TResponseMessage;
   public
     procedure AfterConstruction(); override;
@@ -121,7 +120,7 @@ type
     property RequestSeq: integer read FRequestSeq write FRequestSeq;
     property Success: boolean read FSuccess write FSuccess;
     property Command: TRequestCommand read FCommand write FCommand;
-    property Message: TResponseMessage read FMessage write FMessage;
+    property &Message: TResponseMessage read FMessage write FMessage;
   end;
 
   TResponse<TBody> = class(TResponse)

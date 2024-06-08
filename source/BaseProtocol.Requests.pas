@@ -269,13 +269,13 @@ type
     [JSONName('filters')]
     FFilters: TArray<string>;
     [JSONName('filterOptions'), Managed()]
-    FFilterOptions: TExceptionFilterOptions;
+    FFilterOptions: TExceptionFilterOptionsList;
     [JSONName('exceptionOptions'), Managed()]
-    FExceptionOptions: TExceptionOptions;
+    FExceptionOptions: TExceptionOptionsList;
   public
     property Filters: TArray<string> read FFilters write FFilters;
-    property FilterOptions: TExceptionFilterOptions read FFilterOptions write FFilterOptions;
-    property ExceptionOptions: TExceptionOptions read FExceptionOptions write FExceptionOptions;
+    property FilterOptions: TExceptionFilterOptionsList read FFilterOptions write FFilterOptions;
+    property ExceptionOptions: TExceptionOptionsList read FExceptionOptions write FExceptionOptions;
   end;
 
   [RequestCommand(TRequestCommand.SetExceptionBreakpoints)]
@@ -297,9 +297,15 @@ type
     FVariablesReference: integer;
     [JSONName('name')]
     FName: string;
+    [JSONName('frameId')]
+    FFrameId: integer;
+    [JSONName('mode')]
+    FMode: TBreakpointMode_;
   public
     property VariablesReference: integer read FVariablesReference write FVariablesReference;
     property Name: string read FName write FName;
+    property FrameId: integer read FFrameId write FFrameId;
+    property Mode: TBreakpointMode_ read FMode write FMode;
   end;
 
   [RequestCommand(TRequestCommand.DataBreakpointInfo)]
@@ -646,12 +652,15 @@ type
     FNamedVariables: integer;
     [JSONName('indexedVariables')]
     FIndexedVariables: integer;
+    [JSONName('memoryReference')]
+    FMemoryReference: string;
   public
     property Value: string read FValue write FValue;
     property &Type: string read FType write FType;
     property VariablesReference: integer read FVariablesReference write FVariablesReference;
     property NamedVariables: integer read FNamedVariables write FNamedVariables;
     property IndexedVariables: integer read FIndexedVariables write FIndexedVariables;
+    property MemoryReference: string read FMemoryReference write FMemoryReference;
   end;
 
   TSetVariableResponse = class(TResponse<TSetVariableResponseBody>);
@@ -755,7 +764,7 @@ type
 
   TLoadedSourcesResponse = class(TResponse<TLoadedSourcesResponseBody>);
 
-  TEvaluteArguments = class(TBaseType)
+  TEvaluateArguments = class(TBaseType)
   private
     [JSONName('expression')]
     FExpression: string;
@@ -773,9 +782,9 @@ type
   end;
 
   [RequestCommand(TRequestCommand.Evaluate)]
-  TEvaluteRequest = class(TRequest<TEvaluteArguments>);
+  TEvaluateRequest = class(TRequest<TEvaluateArguments>);
 
-  TEvaluteResponseBody = class(TBaseType)
+  TEvaluateResponseBody = class(TBaseType)
   private
     [JSONName('result')]
     FResult: string;
@@ -790,7 +799,7 @@ type
     [JSONName('indexedVariables')]
     FIndexedVariables: integer;
     [JSONName('memoryReference')]
-    FMemoryReference: integer;
+    FMemoryReference: string;
   public
     property Result: string read FResult write FResult;
     property &Type: string read FType write FType;
@@ -798,10 +807,10 @@ type
     property VariablesReference: integer read FVariablesReference write FVariablesReference;
     property NamedVariables: integer read FNamedVariables write FNamedVariables;
     property IndexedVariables: integer read FIndexedVariables write FIndexedVariables;
-    property MemoryReference: integer read FMemoryReference write FMemoryReference;
+    property MemoryReference: string read FMemoryReference write FMemoryReference;
   end;
 
-  TEvaluteResponse = class(TResponse<TEvaluteResponseBody>);
+  TEvaluateResponse = class(TResponse<TEvaluateResponseBody>);
 
   TSetExpressionArguments = class(TBaseType)
   private
@@ -835,12 +844,15 @@ type
     FNamedVariables: integer;
     [JSONName('indexedVariables')]
     FIndexedVariables: integer;
+    [JSONName('memoryReference')]
+    FMemoryReference: string;
   public
     property Value: string read FValue write FValue;
     property PresentationHint: TVariablePresentationHint read FPresentationHint write FPresentationHint;
     property VariablesReference: integer read FVariablesReference write FVariablesReference;
     property NamedVariables: integer read FNamedVariables write FNamedVariables;
     property IndexedVariables: integer read FIndexedVariables write FIndexedVariables;
+    property MemoryReference: string read FMemoryReference write FMemoryReference;
   end;
 
   TSetExpressionResponse = class(TResponse<TSetExpressionResponseBody>);
@@ -899,7 +911,7 @@ type
 
   TGotoTargetsResponse = class(TResponse<TGotoTargetsResponseBody>);
 
-  TCompletitionsArguments = class(TBaseType)
+  TCompletionsArguments = class(TBaseType)
   private
     [JSONName('frameId')]
     FFrameId: integer;
@@ -917,17 +929,17 @@ type
   end;
 
   [RequestCommand(TRequestCommand.Completions)]
-  TCompletitionsRequest = class(TRequest<TCompletitionsArguments>);
+  TCompletionsRequest = class(TRequest<TCompletionsArguments>);
 
-  TCompletitionsResponseBody = class(TBaseType)
+  TCompletionsResponseBody = class(TBaseType)
   private
-    [JSONName('frameId'), Managed()]
-    FTargets: TCompletitionItems;
+    [JSONName('targets'), Managed()]
+    FTargets: TCompletionItems;
   public
-    property Targets: TCompletitionItems read FTargets write FTargets;
+    property Targets: TCompletionItems read FTargets write FTargets;
   end;
 
-  TCompletitionsResponse = class(TResponse<TCompletitionsResponseBody>);
+  TCompletionsResponse = class(TResponse<TCompletionsResponseBody>);
   
   TExceptionInfoArguments = class(TBaseType)
   private
@@ -949,12 +961,12 @@ type
     [JSONName('breakMode'), JSONReflect(ctString, rtString, TEnumInterceptor)]
     FBreakMode: TExceptionBreakMode;
     [JSONName('details'), Managed()]
-    FDetails: TExceptionDetail;
+    FDetails: TExceptionDetails;
   public
     property ExceptionId: string read FExceptionId write FExceptionId;
     property Description: string read FDescription write FDescription;
     property BreakMode: TExceptionBreakMode read FBreakMode write FBreakMode;
-    property Details: TExceptionDetail read FDetails write FDetails;
+    property Details: TExceptionDetails read FDetails write FDetails;
   end;
 
   TExceptionInfoResponse = class(TResponse<TExceptionInfoResponseBody>);
@@ -1051,9 +1063,9 @@ type
   TDisassembleResponseBody = class(TBaseType)
   private
     [JSONName('instructions'), Managed()]
-    FInstructions: TDynamicDisassembleInstructions;
+    FInstructions: TDynamicDisassembledInstructions;
   public
-    property Instructions: TDynamicDisassembleInstructions read FInstructions write FInstructions;
+    property Instructions: TDynamicDisassembledInstructions read FInstructions write FInstructions;
   end;
 
   TDisassembleResponse = class(TResponse<TDisassembleResponseBody>);
@@ -1098,13 +1110,13 @@ begin
   TProtocolMessage.RegisterRequest(TRequestCommand.Attach, TAttachRequest, TAttachResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.BreakpointLocations, TDynamicBreakpointLocationsRequest, TBreakpointLocationsResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.Cancel, TCancelRequest, TCancelResponse);
-  TProtocolMessage.RegisterRequest(TRequestCommand.Completions, TCompletitionsRequest, TCompletitionsResponse);
+  TProtocolMessage.RegisterRequest(TRequestCommand.Completions, TCompletionsRequest, TCompletionsResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.ConfigurationDone, TConfigurationDoneRequest, TConfigurationDoneResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.Continue, TContinueRequest, TContinueResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.DataBreakpointInfo, TDatabreakpointInfoRequest, TDatabreakpointInfoResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.Disassemble, TDisassembleRequest, TDisassembleResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.Disconnect, TDisconnectRequest, TDisconnectResponse);
-  TProtocolMessage.RegisterRequest(TRequestCommand.Evaluate, TEvaluteRequest, TEvaluteResponse);
+  TProtocolMessage.RegisterRequest(TRequestCommand.Evaluate, TEvaluateRequest, TEvaluateResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.ExceptionInfo, TExceptionInfoRequest, TExceptionInfoResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.Goto, TGotoRequest, TGotoResponse);
   TProtocolMessage.RegisterRequest(TRequestCommand.GotoTargets, TDynamicGotoTargetsRequest, TGotoTargetsResponse);

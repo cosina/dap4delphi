@@ -278,7 +278,7 @@ type
     FMessage: string;
   public
     property ProgressId: string read FProgressId write FProgressId;
-    property Message: string read FMessage write FMessage;
+    property &Message: string read FMessage write FMessage;
   end;
 
   [EventType(TEventType.ProgressEnd)]
