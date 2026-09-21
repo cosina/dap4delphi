@@ -73,7 +73,7 @@ begin
       try
         for var LItem in Data do
           if Assigned(LItem) then
-            LList.Add(LItem);
+            LList.Add(T(LItem));
       except
         on E: Exception do begin
           LList.Free();
